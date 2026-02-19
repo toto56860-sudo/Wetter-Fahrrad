@@ -172,7 +172,23 @@ function zeigeTimeline(hourly) {
 
     const container = document.createElement("div");
 
-    for (let i = 0; i < 12; i++) {
+    const jetzt = new Date();
+    const aktuelleStunde = jetzt.getHours();
+
+    // Index der aktuellen Stunde finden
+    let startIndex = 0;
+    for (let i = 0; i < hourly.time.length; i++) {
+        const [d, t] = hourly.time[i].split("T");
+        const h = parseInt(t.slice(0, 2));
+
+        if (h === aktuelleStunde) {
+            startIndex = i;
+            break;
+        }
+    }
+
+    // Jetzt die nächsten 12 Stunden anzeigen
+    for (let i = startIndex; i < startIndex + 12; i++) {
         const zeit = hourly.time[i].split("T")[1].slice(0, 5);
         const temp = hourly.temperature_2m[i];
         const regen = hourly.precipitation[i];
@@ -199,6 +215,7 @@ function zeigeTimeline(hourly) {
 
     wetterAusgabe.appendChild(container);
 }
+
 
 // =======================
 // BUTTONS
