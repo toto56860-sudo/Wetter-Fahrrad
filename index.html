@@ -1,149 +1,50 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
+    <meta charset="UTF-8">
+
+    <!-- iPhone Vollbild + Notch Support -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <!-- Manifest -->
     <link rel="manifest" href="manifest.json">
 
-    <meta charset="UTF-8">
-    <title>Wetter & Schicht App</title>
+    <!-- iPhone Icon -->
+    <link rel="apple-touch-icon" href="icon-512.png">
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #87CEFA, #f0f2f5);
-            padding: 20px;
-            color: #222;
-            position: relative;
-            overflow-x: hidden;
-        }
+    <!-- Safari Theme Color -->
+    <meta name="theme-color" content="#005bbb">
 
-        /* Sonne oben rechts */
-        .sun {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 80px;
-            height: 80px;
-            background: radial-gradient(circle, #fff7a8 0%, #ffd700 60%, #ffb300 100%);
-            border-radius: 50%;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
-            z-index: -1;
-        }
-
-        h2 {
-            color: #005bbb;
-            margin-bottom: 10px;
-            font-size: 1.6rem;
-        }
-
-        .box {
-            background: rgba(255, 255, 255, 0.88);
-            padding: 20px;
-            border-radius: 12px;
-            max-width: 90%;
-            margin: 0 auto;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            backdrop-filter: blur(4px);
-        }
-
-        input {
-            padding: 12px;
-            width: 70%;
-            border-radius: 8px;
-            border: 1px solid #aaa;
-            margin-top: 10px;
-            font-size: 1.1rem;
-        }
-
-        button {
-            padding: 12px 18px;
-            border: none;
-            background: #005bbb;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-left: 10px;
-            font-size: 1.1rem;
-        }
-
-        button:hover {
-            background: #004999;
-        }
-
-        #schichtErgebnis {
-            white-space: pre-line;
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            background: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            font-size: 1.1rem;
-        }
-
-        .ok {
-            border-left: 6px solid #2ecc71;
-        }
-
-        .warn {
-            border-left: 6px solid #f1c40f;
-        }
-
-        .bad {
-            border-left: 6px solid #e74c3c;
-        }
-
-        /* 📱 iPhone / Mobile Optimierung */
-        @media (max-width: 600px) {
-            h2 {
-                font-size: 1.4rem;
-            }
-
-            input, button {
-                width: 100%;
-                margin: 8px 0;
-                font-size: 1.2rem;
-            }
-
-            .sun {
-                width: 60px;
-                height: 60px;
-                top: 10px;
-                right: 10px;
-            }
-
-            #schichtErgebnis {
-                font-size: 1.2rem;
-            }
-        }
-    </style>
-
+    <title>Wetter & Schicht</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="sun"></div>
+<h1>Wetter & Schicht</h1>
 
-<div class="box">
-    <h2>Guten Morgen!!!</h2>
-
-    <p>Welche Schicht hast du?</p>
-    <ul>
-        <li>Frühdienst (F)</li>
-        <li>Spätdienst (S)</li>
-        <li>Nachtdienst (N)</li>
-        <li>DV Wochenende (D)</li>
-    </ul>
-
+<!-- SCHICHT -->
+<div class="card">
+    <h2>Schichtabfrage</h2>
     <input id="schicht" placeholder="F, S, N oder D">
     <button onclick="checkShift()">Prüfen</button>
-
     <div id="schichtErgebnis"></div>
 </div>
 
+<!-- ZUHAUSE -->
+<div class="card">
+    <h2>Zuhause (Herne)</h2>
+    <button id="btnZuhause">Wetter anzeigen</button>
+    <div id="wetterAusgabe"></div>
+</div>
+
+<!-- UNTERWEGS -->
+<div class="card">
+    <h2>Unterwegs (GPS)</h2>
+    <button id="btnUnterwegs">Wetter anzeigen</button>
+</div>
+
 <script src="app.js"></script>
-<script>
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-}
-</script>
 
 </body>
 </html>
