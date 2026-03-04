@@ -5,12 +5,17 @@ body {
     padding: 20px;
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
+
+    /* verhindert horizontales Scrollen */
+    overflow-x: hidden;
 }
 
+/* Überschrift */
 h1 {
     text-align: center;
 }
 
+/* Karten / Boxen */
 .card {
     background: white;
     padding: 15px;
@@ -19,6 +24,7 @@ h1 {
     box-shadow: 0 0 8px rgba(0,0,0,0.1);
 }
 
+/* Buttons */
 button {
     padding: 12px 18px;
     border: none;
@@ -35,6 +41,7 @@ button:hover {
     background: #006edc;
 }
 
+/* Timeline */
 .timeline-box {
     padding: 10px;
     margin: 6px 0;
@@ -43,6 +50,14 @@ button:hover {
     justify-content: space-between;
 }
 
+/* Schicht-Ausgabe – wichtig für iPhone */
+.schicht-box {
+    max-width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+}
+
+/* Farben */
 .ok { color: green; }
 .warn { color: orange; }
 .bad { color: red; }

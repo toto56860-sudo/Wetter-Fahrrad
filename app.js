@@ -23,7 +23,8 @@ async function checkShift() {
     const lat = 51.538;
     const lon = 7.225;
 
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,precipitation_probability,windspeed_10m&timezone=auto`;
+    // Windrichtung hinzugefügt
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,precipitation_probability,windspeed_10m,winddirection_10m&timezone=auto`;
 
     let data;
     try {
@@ -38,7 +39,7 @@ async function checkShift() {
     const hourly = data.hourly;
 
     // ============================
-    // DATUMSLOGIK (WICHTIG!)
+    // DATUMSLOGIK
     // ============================
 
     const jetzt = new Date();
@@ -47,14 +48,10 @@ async function checkShift() {
     const hin = zeiten[schicht][0];
     const rueck = zeiten[schicht][1];
 
-    // Hinfahrt ist IMMER am nächsten passenden Tag
     let datumHin = heute;
-
-    // Rückfahrt ist IMMER NACH der Hinfahrt
     let datumRueck;
 
     if (rueck < hin) {
-        // Rückfahrt am nächsten Tag
         const morgen = new Date(jetzt.getTime() + 24 * 60 * 60 * 1000);
         datumRueck = morgen.toISOString().split("T")[0];
     } else {
@@ -75,7 +72,8 @@ async function checkShift() {
                     temp: hourly.temperature_2m[i],
                     regen: hourly.precipitation[i],
                     wahrscheinlichkeit: hourly.precipitation_probability[i],
-                    wind: hourly.windspeed_10m[i]
+                    wind: hourly.windspeed_10m[i],
+                    richtung: hourly.winddirection_10m[i] // NEU
                 };
             }
         }
@@ -90,6 +88,25 @@ async function checkShift() {
         ausgabe.innerText = "Keine passenden Zeitpunkte gefunden.";
         return;
     }
+
+    // ============================
+    // WINDLOGIK
+    // ============================
+
+    function windBewertung(windSpeed, windDir, fahrtrichtung) {
+        const diff = Math.abs(windDir - fahrtrichtung);
+        const winkel = diff > 180 ? 360 - diff : diff;
+
+        const istGegenwind = winkel < 45;
+
+        if (windSpeed >= 18) return "auto";
+        if (windSpeed >= 15 && istGegenwind) return "auto";
+
+        return "ok";
+    }
+
+    const hinwegWind = windBewertung(p1.wind, p1.richtung, 260); // Baukau → Wanne
+    const rueckWind = windBewertung(p2.wind, p2.richtung, 80);  // Wanne → Baukau
 
     // Labels
     const labels = {
@@ -111,6 +128,7 @@ async function checkShift() {
     <strong>${label}</strong><br>
     🌡️ ${p.temp}°C<br>
     💨 ${p.wind} m/s<br>
+    🧭 ${p.richtung}° Windrichtung<br>
     🌧️ ${p.regen.toFixed(1)} mm<br>
     📊 ${p.wahrscheinlichkeit}% Regenwahrscheinlichkeit
 </div>
@@ -121,7 +139,10 @@ async function checkShift() {
     text += block(labels[schicht][0], p1);
     text += block(labels[schicht][1], p2);
 
-    // Empfehlung
+    // ============================
+    // EMPFEHLUNG
+    // ============================
+
     let empfehlung = "";
     let klasse = "";
 
@@ -131,11 +152,11 @@ async function checkShift() {
     } else if (p1.temp < 3 || p2.temp < 3) {
         empfehlung = "❄️ Sehr kalt – Auto empfohlen.";
         klasse = "bad";
-    } else if (p1.wind > 30 || p2.wind > 30) {
-        empfehlung = "💨 Starker Wind – Fahrrad möglich, aber vorsichtig.";
-        klasse = "warn";
+    } else if (hinwegWind === "auto" || rueckWind === "auto") {
+        empfehlung = "💨 Starker Gegenwind – Auto empfohlen.";
+        klasse = "bad";
     } else {
-        empfehlung = "🚴‍♂️ Alles trocken – Fahrrad empfohlen.";
+        empfehlung = "🚴‍♂️ Alles ok – Fahrrad empfohlen.";
         klasse = "ok";
     }
 
@@ -159,7 +180,7 @@ ${empfehlung}
 // =======================
 
 async function ladeWetterTimeline(lat, lon) {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,precipitation_probability,windspeed_10m&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,precipitation_probability,windspeed_10m,winddirection_10m&timezone=auto`;
 
     const res = await fetch(url);
     const data = await res.json();
@@ -175,7 +196,6 @@ function zeigeTimeline(hourly) {
     const jetzt = new Date();
     const aktuelleStunde = jetzt.getHours();
 
-    // Index der aktuellen Stunde finden
     let startIndex = 0;
     for (let i = 0; i < hourly.time.length; i++) {
         const [d, t] = hourly.time[i].split("T");
@@ -187,13 +207,13 @@ function zeigeTimeline(hourly) {
         }
     }
 
-    // Jetzt die nächsten 12 Stunden anzeigen
     for (let i = startIndex; i < startIndex + 12; i++) {
         const zeit = hourly.time[i].split("T")[1].slice(0, 5);
         const temp = hourly.temperature_2m[i];
         const regen = hourly.precipitation[i];
         const wahrscheinlichkeit = hourly.precipitation_probability[i];
         const wind = hourly.windspeed_10m[i];
+        const richtung = hourly.winddirection_10m[i];
 
         const box = document.createElement("div");
         box.className = "timeline-box";
@@ -207,6 +227,7 @@ function zeigeTimeline(hourly) {
             <span>${regen > 0 ? "🌧️" : "☀️"} ${regen.toFixed(1)} mm</span>
             <span>${temp}°C</span>
             <span>${wind} m/s</span>
+            <span>🧭 ${richtung}°</span>
             <span>${wahrscheinlichkeit}%</span>
         `;
 
